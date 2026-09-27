@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lol
+      POSTGRES_PASSWORD: lol
+      POSTGRES_DB: lol_api
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lol"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://lol:lol@db:5432/lol_api
+      # Se toman del entorno o de un .env junto a este archivo: la key nunca va en el repo.
+      RIOT_API_KEY: ${RIOT_API_KEY:?Define RIOT_API_KEY (tu key de developer.riotgames.com)}
+      APP_TOKEN: ${APP_TOKEN:-}
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
